@@ -2,12 +2,17 @@
   "manifest_version": 2,
 
   "name": "Focus Popup",
-  "description": "Open the current page or a link in a popup window",
-  "version": "1.0",
+  "description": "Open the page in a popup window",
+  "version": "1.8",
   "icons": {
+	  "16": "icon16.png",
 	  "38": "icon38.png",
 	  "48": "icon48.png",
 	  "64": "icon64.png"
+  },
+  
+  "omnibox": {
+  	"keyword" : "focus"
   },
 
   "browser_action": {
@@ -19,6 +24,6 @@
   },
   
   "permissions": [
-    "contextMenus", "activeTab", "*://*/*"
+    "contextMenus", "activeTab", "*://*/*", "tabs"
   ]
 }
