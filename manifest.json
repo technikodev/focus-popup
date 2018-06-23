@@ -3,12 +3,12 @@
 
   "name": "Focus Popup",
   "description": "Open the page in a popup window",
-  "version": "1.8",
+  "version": "2.0",
   "icons": {
-	  "16": "icon16.png",
-	  "38": "icon38.png",
-	  "48": "icon48.png",
-	  "64": "icon64.png"
+	  "16": "icons/icon16.png",
+	  "38": "icons/icon38.png",
+	  "48": "icons/icon48.png",
+	  "64": "icons/icon64.png"
   },
   
   "omnibox": {
@@ -16,14 +16,19 @@
   },
 
   "browser_action": {
-    "default_icon": "icon.png"
+    "default_icon": "icons/icon.png"
   },
   
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["chrome-promise.js", "background.js"]
   },
   
   "permissions": [
-    "contextMenus", "activeTab", "*://*/*", "tabs"
-  ]
+    "contextMenus", "activeTab", "*://*/*", "tabs", "storage"
+  ],
+  
+  "options_ui": {
+    "page": "options.html",
+    "chrome_style": true
+  }
 }

@@ -3,183 +3,118 @@ Open In Popup
 by Azza; MIT License
 */
 
-/*
-This function is no longer needed because this background script can get access to the current tab's url using chrome.tabs.query
-function mainprogram() {
-	chrome.tabs.executeScript(null, {file: 'main.js'});
-}
-*/
 
-/*function makewindow(pageurl) {
-	chrome.windows.create({
-			url: pageurl,
-			state: 'fullscreen',
-			type: 'popup'
-		});
-}*/
+const chromep = new ChromePromise();
+
+function x(e) {
+	console.log('Something happened:', e);
+}
+
+function restore() {
+	chromep.storage.local.get('initial').then(function(item) {
+		console.log('restore()');
+		console.log('item.initial:', item.initial);
+		if (item.initial == false) {
+			console.log('initial was false');
+			return chromep.storage.local.get(['initial', 'width', 'fullscreen']);
+		} else {
+			chromep.storage.local.set({initial: false, width: 'default', fullscreen: false}).then(function() {
+				console.log('initialised settings');
+			});
+			return chromep.storage.local.get(['initial', 'width', 'fullscreen']);
+		}
+	}).then(function(state) {
+		console.log('state.width:', state.width);
+		console.log('state.fullscreen:', state.fullscreen);
+		console.log('screen.width', screen.width)
+	}).catch(function(reason) {
+		x(reason);
+	});
+}
+restore();
+
+//the full function
+function makewindow(url) {
+	//make an object for the new window
+	if (windowobj) {
+		delete windowobj;
+	}
+	var windowobj = {};
+	
+	//initialise some of the window values
+	windowobj.url = url;
+	windowobj.type = 'popup';
+	
+	//states: set the state
+	chromep.storage.local.get('width').then(function(item) {
+		if (item.width == 'default') {
+			//console.log('no set width, so: default');
+		} else if (item.width == 'half') {
+			scrnwdth = screen.width / 2;
+			windowobj.width = scrnwdth;
+			scrnhght = screen.height;
+			windowobj.height = scrnhght;
+		} else if (item.width == 'third') {
+			scrnwdth = screen.width / 3;
+			windowobj.width = scrnwdth;
+			scrnhght = screen.height;
+			windowobj.height = scrnhght;
+		} else if (item.width == 'full') {
+			scrnwdth = screen.width;
+			scrnhght = screen.height;
+			windowobj.width = scrnwdth;
+			windowobj.height = scrnhght;
+		} else {
+			console.log('there was nothing set in item.width:', item.width);
+		}
+		return chromep.storage.local.get('fullscreen')
+	//widths: set the width
+	}).then(function (item) {
+		if (item.fullscreen == true) {
+			windowobj.state = 'fullscreen';
+			if (windowobj.width) {
+				delete windowobj.width;
+			}
+		} else {
+			windowobj.state = 'normal';
+		}
+		console.log(windowobj);
+		chrome.windows.create(windowobj);
+	}).catch(function(reason) {
+		x(reason);
+	});
+	
+}
 
 function linkprogram(info, tab) {
-	//var myWindow = window.open(info.linkUrl, '', 'fullscreen=yes,menubar=no');
-	chrome.windows.create({
-		url: info.linkUrl, 
-		state: 'normal',
-		type: 'popup'
-	});
-}
-function linkprogramfs(info, tab) {
-	//var myWindow = window.open(info.linkUrl, '', 'fullscreen=yes,menubar=no');
-	chrome.windows.create({
-		url: info.linkUrl, 
-		state: 'fullscreen',
-		type: 'popup'
-	});
+	makewindow(info.linkUrl);
 }
 
 function itemprogram(info, tab) {
-	//var myWindow = window.open(info.srcUrl, '', 'fullscreen=yes,menubar=no');
-	chrome.windows.create({
-		url: info.srcUrl, 
-		state: 'normal',
-		type: 'popup'
-	});
-}
-function itemprogramfs(info, tab) {
-	//var myWindow = window.open(info.srcUrl, '', 'fullscreen=yes,menubar=no');
-	chrome.windows.create({
-		url: info.srcUrl, 
-		state: 'fullscreen',
-		type: 'popup'
-	});
+	makewindow(info.srcUrl);
 }
 
 function frameprogram(info, tab) {
-	//var myWindow = window.open(info.frameUrl, '', 'fullscreen=yes,menubar=no');
-	chrome.windows.create({
-		url: info.frameUrl, 
-		state: 'normal',
-		type: 'popup'
-	});
-}
-function frameprogramfs(info, tab) {
-	//var myWindow = window.open(info.frameUrl, '', 'fullscreen=yes,menubar=no');
-	chrome.windows.create({
-		url: info.frameUrl, 
-		state: 'fullscreen',
-		type: 'popup'
-	});
+	makewindow(info.frameUrl);
 }
 
 function pageprogram(info, tab) {
-	//var myWindow = window.open(info.pageUrl, '', 'fullscreen=yes,menubar=no');
-	chrome.windows.create({
-		url: info.pageUrl, 
-		state: 'normal',
-		type: 'popup'
-	});
-}
-function pageprogramfs(info, tab) {
-	//var myWindow = window.open(info.pageUrl, '', 'fullscreen=yes,menubar=no');
-	chrome.windows.create({
-		url: info.pageUrl, 
-		state: 'fullscreen',
-		type: 'popup'
-	});
-}
-
-function x(e) {
-	console.log(e);
+	makewindow(info.pageUrl);
 }
 
 function baprogram(info, tab) {
-	if (checkedState) {
-		chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-			chrome.windows.create({
-				url: tabs[0].url, 
-				state: 'fullscreen',
-				type: 'popup'
-			});
-		});
-	} else {
-		chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-			chrome.windows.create({
-				url: tabs[0].url, 
-				state: 'normal',
-				type: 'popup'
-			});
-		});
-	}
+	chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
+		makewindow(tabs[0].url);
+	});
 }
-/*function baprogramfs(info, tab) {
-	//var myWindow = window.open(info.pageUrl, '', 'fullscreen=yes,menubar=yes');
-	chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-		var myWindow = window.open(tabs[0].url, '', 'fullscreen=yes,menubar=yes');
-	});
-	
-	chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-		chrome.windows.create({
-			url: tabs[0].url, 
-			//tabId: 'My site',
-			//focused: true,
-			state: 'fullscreen',
-			type: 'popup'
-		});
-	});
-	console.log('happened');
-}*/
 
 
 //browser button
 chrome.browserAction.onClicked.addListener(function(tab) {
-  	//mainprogram(); is no longer needed	
-	/*chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-		var myWindow = window.open(tabs[0].url, '', 'fullscreen=yes,menubar=no');
-	});*/
-	baprogram();
+  	chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
+		makewindow(tabs[0].url);
+	});
 });
-
-//checkbox controller
-var checkedState = false; //initial state
-function changestuff() {
-	checkedState = !checkedState;
-	if (checkedState) {
-		//if checked, remove the previous item and put in the item again but with a different onclick. This stops the onclick function being stacked as it happens when using .update
-		chrome.contextMenus.remove('opencurrentpagepopupwindow');
-		chrome.contextMenus.create({id: 'opencurrentpagepopupwindow', title: 'Open Current Page In Popup Fullscreen', contexts: ['page', 'editable'], onclick: pageprogramfs});
-		
-		chrome.contextMenus.remove('openlinkpopupwindow');
-		chrome.contextMenus.create({id: 'openlinkpopupwindow', title: 'Open Link In Popup Fullscreen', contexts: ['link', 'selection'], onclick: linkprogramfs});
-		
-		chrome.contextMenus.remove('openitempopupwindow');
-		chrome.contextMenus.create({id: 'openitempopupwindow', title: 'Open Item In Popup Fullscreen', contexts: ['image', 'video', 'audio'], onclick: itemprogramfs});
-		
-		chrome.contextMenus.remove('openframepopupwindow');
-		chrome.contextMenus.create({id: 'openframepopupwindow', title: 'Open Frame In Popup Fullscreen', contexts: ['frame'], onclick: frameprogramfs});
-		
-		chrome.contextMenus.remove('opencurrentpagepopupwindowba');
-		chrome.contextMenus.create({id: 'opencurrentpagepopupwindowba', title: 'Open Current Page In Popup Fullscreen', contexts: ['browser_action'], onclick: baprogram});
-		
-		//chrome.browserAction.onClicked.removeListener(function(tab) {baprogram();})
-		//chrome.browserAction.onClicked.addListener(function(tab) {baprogramfs();});
-	} else {
-		chrome.contextMenus.remove('opencurrentpagepopupwindow');
-		chrome.contextMenus.create({id: 'opencurrentpagepopupwindow', title: 'Open Current Page In Popup', contexts: ['page', 'editable', 'selection'], onclick: pageprogram});
-		
-		chrome.contextMenus.remove('openlinkpopupwindow');
-		chrome.contextMenus.create({id: 'openlinkpopupwindow', title: 'Open Link In Popup', contexts: ['link', 'selection'], onclick: linkprogram});
-		
-		chrome.contextMenus.remove('openitempopupwindow');
-		chrome.contextMenus.create({id: 'openitempopupwindow', title: 'Open Item In Popup', contexts: ['image', 'video', 'audio'], onclick: itemprogram});
-		
-		chrome.contextMenus.remove('openframepopupwindow');
-		chrome.contextMenus.create({id: 'openframepopupwindow', title: 'Open Frame In Popup', contexts: ['frame'], onclick: frameprogram});
-		
-		chrome.contextMenus.remove('opencurrentpagepopupwindowba');
-		chrome.contextMenus.create({id: 'opencurrentpagepopupwindowba', title: 'Open Current Page In Popup', contexts: ['browser_action'], onclick: baprogram});
-		
-		//chrome.browserAction.onClicked.removeListener(function(tab) {baprogramfs();})
-		//chrome.browserAction.onClicked.addListener(function(tab) {baprogram();});
-	}
-}
 
 
 //context menu initialisation
@@ -188,8 +123,6 @@ chrome.contextMenus.create({id: 'openlinkpopupwindow', title: 'Open Link In Popu
 chrome.contextMenus.create({id: 'openitempopupwindow', title: 'Open Item In Popup', contexts: ['image', 'video', 'audio'], onclick: itemprogram});
 chrome.contextMenus.create({id: 'openframepopupwindow', title: 'Open Frame In Popup', contexts: ['frame'], onclick: frameprogram});
 chrome.contextMenus.create({id: 'opencurrentpagepopupwindowba', title: 'Open Current Page In Popup From Button', contexts: ['browser_action'], onclick: baprogram});
-
-chrome.contextMenus.create({id: 'fullscreenboolean', type: 'checkbox', title: 'Fullscreen?', contexts: ['browser_action'], checked: checkedState, onclick: changestuff});
 
 
 //omnibox version
@@ -218,8 +151,6 @@ chrome.omnibox.onInputChanged.addListener(function (text, suggest) {
 chrome.omnibox.onInputEntered.addListener(
   function(text) {
     
-    //var newUrl = encodeURIComponent(text);
-
 	var patt = /http:\/\//i;
 	var pattwo = /https:\/\//i;
 	
@@ -235,19 +166,6 @@ chrome.omnibox.onInputEntered.addListener(
 		text = 'http://' + text;
 		console.log(text);
 	}
-    if (checkedState) {
-			chrome.windows.create({
-				url: text, 
-				state: 'fullscreen',
-				type: 'popup'
-			//}, x);
-			});
-	} else {
-			chrome.windows.create({
-				url: text, 
-				state: 'normal',
-				type: 'popup'
-			//}, x);
-			});
-	}
+	
+	makewindow(text);
   });
