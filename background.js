@@ -9,31 +9,39 @@ const chromep = new ChromePromise();
 function x(e) {
 	console.log('Something happened:', e);
 }
+function xy(e) {
+	console.log(e);
+}
 
+// - - - - - - - - - - - - - - - - - - -
+//restore settings
 function restore() {
+	var d = new Date();
+	console.log(d);
 	chromep.storage.local.get('initial').then(function(item) {
-		//console.log('restore()');
-		//console.log('item.initial:', item.initial);
+		console.log('restore()');
+		console.log('item.initial:', item.initial);
 		if (item.initial == false) {
-			//console.log('initial was false');
+			console.log('initial was false');
 			return chromep.storage.local.get(['initial', 'width', 'fullscreen', 'close']);
 		} else {
 			chromep.storage.local.set({initial: false, width: 'default', fullscreen: false, close: false}).then(function() {
-				//console.log('initialised settings');
+				console.log('initialised settings');
 			});
 			return chromep.storage.local.get(['initial', 'width', 'fullscreen']);
 		}
 	}).then(function(state) {
-		//console.log('state.width:', state.width);
-		//console.log('state.fullscreen:', state.fullscreen);
-		//console.log('screen.width', screen.width)
+		console.log('state.width:', state.width);
+		console.log('state.fullscreen:', state.fullscreen);
+		console.log('screen.width', screen.width)
 	}).catch(function(reason) {
 		x(reason);
 	});
 }
 restore();
 
-//the full function
+// - - - - - - - - - - - - - - - - - - -
+//make the popup window
 function makewindow(url) {
 	//make an object for the new window
 	if (windowobj) {
@@ -42,8 +50,32 @@ function makewindow(url) {
 	var windowobj = {};
 	
 	//initialise some of the window values
-	windowobj.url = url;
+	//windowobj.url = url;
+	
+	if (navigator.appVersion.indexOf('Mac') != -1 && typeof InstallTrigger !== 'undefined') {
+		var iframeFix = chrome.runtime.getURL('iframe-fix/iframe-fix.html');
+		console.log(iframeFix);
+	//	windowobj.url = iframeFix + '?url=' + url;
+	//} else {
+		windowobj.url = iframeFix;
+	//}
+	
+		chrome.windows.create(windowobj, function(tab){
+			console.log(tab);
+		});
+	//chrome.tabs.executeScript({
+		//code: `console.log('location:', window.location.href);`
+		//console.log('focuspopup is running');
+	//	code: `var myWindow = window.open(location.href, '', 'menubar=no');`
+	//});
+	} else {
+		windowobj.url = url;
+	}
+	
 	windowobj.type = 'popup';
+	
+	windowobj.left = 0;
+	windowobj.top = 0;
 	
 	//states: set the state
 	chromep.storage.local.get('width').then(function(item) {
@@ -67,7 +99,7 @@ function makewindow(url) {
 		} else {
 			console.log('there was nothing set in item.width:', item.width);
 		}
-		return chromep.storage.local.get('fullscreen')
+		return chromep.storage.local.get(['fullscreen', 'close'])
 	//widths: set the width
 	}).then(function (item) {
 		if (item.fullscreen == true) {
@@ -78,17 +110,31 @@ function makewindow(url) {
 			if (windowobj.height) {
 				delete windowobj.height;
 			}
+			//if (windowobj.top) {
+				delete windowobj.top;
+			//}
+			//if (windowobj.left) {
+				delete windowobj.left;
+			//}
 		} else {
 			windowobj.state = 'normal';
 		}
-		//console.log(windowobj);
-		chrome.windows.create(windowobj);
+		console.log('windowobj', windowobj);
+		/*
+		chrome.windows.create(windowobj, function(window) {
+			console.log('window', window);
+			chrome.windows.update(window.id, {top: 0, left: 0}, x);
+		});
+		*/
+		chrome.windows.create(windowobj, xy);
 	}).catch(function(reason) {
 		x(reason);
 	});
 	
 }
 
+// - - - - - - - - - - - - - - - - - - -
+//different subfunctions
 function linkprogram(info, tab) {
 	makewindow(info.linkUrl);
 }
@@ -106,28 +152,31 @@ function pageprogram(info, tab) {
 }
 
 function baprogram(info, tab) {
-	chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-		makewindow(tabs[0].url);
-	});
+	makewindow(tab.url);
 }
 
-
+// - - - - - - - - - - - - - - - - - - -
 //browser button
 chrome.browserAction.onClicked.addListener(function(tab) {
-  	chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-		makewindow(tabs[0].url);
-	});
+  	chromep.storage.local.get('close').then(function(item) {
+  		if (item.close == true) {
+  			makewindow(tab.url);
+  			chrome.tabs.remove(tab.id);
+  		} else {
+  			makewindow(tab.url);
+		}
+	});  	
 });
 
-
+// - - - - - - - - - - - - - - - - - - -
 //context menu initialisation
 chrome.contextMenus.create({id: 'opencurrentpagepopupwindow', title: 'Open Current Page In Popup', contexts: ['page', 'editable'], onclick: pageprogram});
 chrome.contextMenus.create({id: 'openlinkpopupwindow', title: 'Open Link In Popup', contexts: ['link', 'selection'], onclick: linkprogram});
 chrome.contextMenus.create({id: 'openitempopupwindow', title: 'Open Item In Popup', contexts: ['image', 'video', 'audio'], onclick: itemprogram});
 chrome.contextMenus.create({id: 'openframepopupwindow', title: 'Open Frame In Popup', contexts: ['frame'], onclick: frameprogram});
-chrome.contextMenus.create({id: 'opencurrentpagepopupwindowba', title: 'Open Current Page In Popup From Button', contexts: ['browser_action'], onclick: baprogram});
+chrome.contextMenus.create({id: 'opencurrentpagepopupwindowba', title: 'Open Current Page In Popup', contexts: ['browser_action'], onclick: baprogram});
 
-
+// - - - - - - - - - - - - - - - - - - -
 //omnibox version
 
 //searching
@@ -162,12 +211,12 @@ chrome.omnibox.onInputEntered.addListener(
 	
 	if (check != null || checktwo != null) {
 		//good on ya
-		//console.log('works out alright');
+		console.log('works out alright');
 	} else {
-		//console.log('');
-		//console.log(text);
+		console.log('');
+		console.log(text);
 		text = 'http://' + text;
-		//console.log(text);
+		console.log(text);
 	}
 	
 	makewindow(text);
@@ -182,10 +231,14 @@ chrome.runtime.onMessageExternal.addListener(
       	//	return;  // don't allow this extension access
     	if (request.focuspopup) {
     		makewindow(request.focuspopup);
-      		//sendResponse({targetData: 'success'});
+      		sendResponse({targetData: 'success'});
+      	}
+      	if (request.greeting) {
+      		sendResponse({valid: 'yes'});
       	}
     	//else if (request.activateLasers) {
       	//	var success = activateLasers();
       	//sendResponse({activateLasers: success});
     	//}
-  });
+  }
+);

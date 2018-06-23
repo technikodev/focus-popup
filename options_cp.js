@@ -26,9 +26,9 @@ chromep.storage.local.get('initial').then(function(item) {
 	console.log('item[\'initial\']:', item['initial']);
 	if (item.initial == false) {
 		console.log('initial was false');
-		return chromep.storage.local.get(['initial', 'width', 'fullscreen']);
+		return chromep.storage.local.get(['initial', 'width', 'fullscreen', 'close']);
 	} else {
-		chromep.storage.local.set({initial: false, width: 'half', fullscreen: false}).then(function() {
+		chromep.storage.local.set({initial: false, width: 'half', fullscreen: false, close: false}).then(function() {
 			console.log('initialised settings');
 		});
 		return chromep.storage.local.get(['initial', 'width', 'fullscreen']);
@@ -37,8 +37,10 @@ chromep.storage.local.get('initial').then(function(item) {
 	console.log('state.initial:', state.initial);
 	console.log('state.width:', state.width);
 	console.log('state.fullscreen:', state.fullscreen);
+	console.log('state.close:', state.close);
 	document.querySelector('#widthselectbox').value = state.width;
 	document.querySelector('#fullscreencheckbox').checked = state.fullscreen;
+	document.querySelector('#closecheckbox').checked = state.close;
 	document.querySelector('#status').innerText = 'Restored';
 	setTimeout(function() {
   			document.querySelector('#status').innerText = '';
@@ -50,12 +52,13 @@ chromep.storage.local.get('initial').then(function(item) {
 function save_options() {
 	chromep.storage.local.set({
 		width: document.querySelector('#widthselectbox').value,
-		fullscreen: document.querySelector('#fullscreencheckbox').checked
+		fullscreen: document.querySelector('#fullscreencheckbox').checked,
+		close: document.querySelector('#closecheckbox').checked
 	}).then(function() {
   		document.querySelector('#status').innerText = 'Options saved.';
   		setTimeout(function() {
   			document.querySelector('#status').innerText = '';
-  		}, 750);
+  		}, 1000);
   		
 	});
 }
