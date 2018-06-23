@@ -28,7 +28,7 @@ chromep.storage.local.get('initial').then(function(item) {
 		console.log('initial was false');
 		return chromep.storage.local.get(['initial', 'width', 'fullscreen']);
 	} else {
-		chromep.storage.local.set({initial: false, width: 'half', fullscreen: false}).then(function() {
+		chromep.storage.local.set({initial: false, width: 'default', fullscreen: false}).then(function() {
 			console.log('initialised settings');
 		});
 		return chromep.storage.local.get(['initial', 'width', 'fullscreen']);

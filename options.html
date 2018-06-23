@@ -1,47 +1,28 @@
 <!doctype html>
 <html>
-	<head>
-  		<title>Focus Popup Options</title>
-  		<style>
-    		body {
-    			padding: 10px;
-    		}
-  		</style>
-	</head>
-	<body>
-  		<fieldset>
-  		<legend><label>Width of popup:</label></legend>
-  		<select id="widthselectbox">
-   			<option value="default">Default</option>
-   			<option value="half">1/2 of screen width</option>
-   			<option value="third">1/3 of screen width</option>
-   			<option value="full">100% screen width</option>
-		</select>
-		</fieldset>
-		<br>
-		
-		<fieldset>
-		<legend><label>Fullscreen</label></legend>
-		<label>Fullscreen? <input type="checkbox" id="fullscreencheckbox"></label>
-		<!--<legend><label>Fullscreen? <input type="checkbox" id="fullscreencheckbox"></label>-->
-		</fieldset>
-		<!--
-		<br>
-		
-		<fieldset>
-		<legend><label>Hostnames</label></legend>
-		<p>If a page matches a hostname, e.g. https://website.com, it will automatically open as a popup</p>
-		<input id="">
-		<text
-		</fieldset>
-		-->
-		
-		<br>
-  		<p id="status"></p>
-  		<br>
-  		<button id="save">Save</button>
+<head>
+  <title>Focus Popup Options</title>
+  <style>
+    body: { padding: 10px; }
+  </style>
+</head>
 
-  		<script src="chrome-promise.js"></script>
-  		<script src="options_cp.js"></script>
-	</body>
+<body>
+  <label>Width of popup:</label>
+  <select id="widthselectbox">
+   <option value="default">Default</option>
+   <option value="half">1/2 of screen width</option>
+   <option value="third">1/3 of screen width</option>
+   <option value="full">100% screen width</option>
+  </select>
+	<br>
+  <label>Fullscreen? <input type="checkbox" id="fullscreencheckbox"></label>
+<br>
+  <p id="status"></p>
+  <br>
+  <button id="save">Save</button>
+
+  <script src="chrome-promise.js"></script>
+  <script src="options_cp.js"></script>
+</body>
 </html>

@@ -12,21 +12,21 @@ function x(e) {
 
 function restore() {
 	chromep.storage.local.get('initial').then(function(item) {
-		//console.log('restore()');
-		//console.log('item.initial:', item.initial);
+		console.log('restore()');
+		console.log('item.initial:', item.initial);
 		if (item.initial == false) {
-			//console.log('initial was false');
-			return chromep.storage.local.get(['initial', 'width', 'fullscreen', 'close']);
+			console.log('initial was false');
+			return chromep.storage.local.get(['initial', 'width', 'fullscreen']);
 		} else {
-			chromep.storage.local.set({initial: false, width: 'default', fullscreen: false, close: false}).then(function() {
-				//console.log('initialised settings');
+			chromep.storage.local.set({initial: false, width: 'default', fullscreen: false}).then(function() {
+				console.log('initialised settings');
 			});
 			return chromep.storage.local.get(['initial', 'width', 'fullscreen']);
 		}
 	}).then(function(state) {
-		//console.log('state.width:', state.width);
-		//console.log('state.fullscreen:', state.fullscreen);
-		//console.log('screen.width', screen.width)
+		console.log('state.width:', state.width);
+		console.log('state.fullscreen:', state.fullscreen);
+		console.log('screen.width', screen.width)
 	}).catch(function(reason) {
 		x(reason);
 	});
@@ -75,13 +75,10 @@ function makewindow(url) {
 			if (windowobj.width) {
 				delete windowobj.width;
 			}
-			if (windowobj.height) {
-				delete windowobj.height;
-			}
 		} else {
 			windowobj.state = 'normal';
 		}
-		//console.log(windowobj);
+		console.log(windowobj);
 		chrome.windows.create(windowobj);
 	}).catch(function(reason) {
 		x(reason);
@@ -162,30 +159,13 @@ chrome.omnibox.onInputEntered.addListener(
 	
 	if (check != null || checktwo != null) {
 		//good on ya
-		//console.log('works out alright');
+		console.log('works out alright');
 	} else {
-		//console.log('');
-		//console.log(text);
+		console.log('');
+		console.log(text);
 		text = 'http://' + text;
-		//console.log(text);
+		console.log(text);
 	}
 	
 	makewindow(text);
-  }
-);
-
-
-//inter-extension functionality
-chrome.runtime.onMessageExternal.addListener(
-	function(request, sender, sendResponse) {
-		//if (sender.id == blacklistedExtension)
-      	//	return;  // don't allow this extension access
-    	if (request.focuspopup) {
-    		makewindow(request.focuspopup);
-      		//sendResponse({targetData: 'success'});
-      	}
-    	//else if (request.activateLasers) {
-      	//	var success = activateLasers();
-      	//sendResponse({activateLasers: success});
-    	//}
   });
